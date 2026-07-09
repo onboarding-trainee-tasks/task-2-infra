@@ -1,0 +1,10 @@
+variable "s3_bucket_arn" {
+  description = "The ARN of the S3 bucket to allow access to"
+  type        = string
+}
+
+variable "iam_name" {
+  description = "The name of the IAM resources"
+  type        = string
+  default     = "EC2-Profile"
+}
