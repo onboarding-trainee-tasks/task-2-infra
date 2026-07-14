@@ -22,3 +22,7 @@ output "db_password" {
   description = "The RDS instance password"
   value       = local.db_secrets.db_password
 }
+
+output "db_instance_identifier" {
+  value = aws_db_instance.this.identifier
+}

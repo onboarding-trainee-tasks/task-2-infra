@@ -27,7 +27,7 @@ sudo install \
     "$GRAFANA_PROVIDER_SOURCE" \
     /etc/grafana/provisioning/dashboards/provider.yaml
 
-### Install infrastructure dashboard
+### Install infrastructure dashboards
 
 sudo install \
     -o grafana \

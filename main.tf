@@ -239,14 +239,22 @@ module "asg" {
   user_data           = "./scripts/ollama-setup.sh"
 }
 
-### switch to us-east-1
-### to do:      pgvector
-###             use secret manager for rds credentials                  +++
-###             number internal instances                               
-###             check if bastion and nat in different public subnets    +++
-###             move data ami to general variables                      +++
-###             asg metrics for scaling                                 +++
-####################################################################
-### in future:  ssh switch to aws generated, and then ssm
-###             aurora db cluster
-###             s3 encryption
+module "cloudwatch" {
+  source = "./modules/cloudwatch"
+
+  project     = var.project
+  aws_region  = "eu-central-1"
+  environment = var.environment
+
+  sns_topic_name = var.sns_topic_name
+
+  web_instance_id     = module.web_server_instance.instance_id
+  bastion_instance_id = module.bastion_instance.instance_id
+
+  llm_asg_name = module.asg.autoscaling_group_name
+
+  load_balancer_arn_suffix = module.alb.load_balancer_arn_suffix
+  target_group_arn_suffix  = module.alb.target_group_arn_suffix
+
+  # db_instance_identifier = module.rds.db_instance_identifier
+}

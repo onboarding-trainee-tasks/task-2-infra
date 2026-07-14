@@ -23,6 +23,12 @@ variable "allowed_cidr_blocks" {
   default     = ["178.212.0.0/16", "146.120.0.0/16", "31.42.0.0/16"]
 }
 
+variable "aws_region" {
+  description = "Region where resources are deployed"
+  type        = string
+  default     = "eu-central-1"
+}
+
 variable "ssh_key_path" {
   description = "Path to the SSH key pair for EC2 instances"
   type        = string
@@ -75,4 +81,22 @@ variable "autoscaling_policy_value" {
   description = "Target value for the metric"
   type = number
   default = 80
+}
+
+variable "sns_topic_name" {
+  description = "Name of the SNS Topic for CloudWatch"
+  type = string
+  default = "task-2-alerts"
+}
+
+variable "project" {
+  description = "Project name"
+  type        = string
+  default     = "llm"
+}
+
+variable "environment" {
+  description = "Environment name"
+  type        = string
+  default     = "test"
 }

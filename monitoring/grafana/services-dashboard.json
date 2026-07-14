@@ -4,22 +4,7 @@
   "metadata": {
     "name": "adhvnz5",
     "namespace": "default",
-    "uid": "a4b4a3b4-eb47-4284-9617-72a8250432f7",
-    "resourceVersion": "1784025721964018",
-    "generation": 9,
-    "creationTimestamp": "2026-07-14T09:55:39Z",
-    "labels": {
-      "grafana.app/deprecatedInternalID": "809435309019136"
-    },
-    "annotations": {
-      "grafana.app/createdBy": "user:ffs2ijn2j7ksgb",
-      "grafana.app/folder": "dfs2ijw3shloge",
-      "grafana.app/saved-from-ui": "Grafana v13.1.0 (b309c9bb3b)",
-      "grafana.app/updatedBy": "user:ffs2ijn2j7ksgb",
-      "grafana.app/updatedTimestamp": "2026-07-14T10:42:01Z",
-      "grafana.app/folderTitle": "Infrastructure",
-      "grafana.app/folderUrl": "/dashboards/f/dfs2ijw3shloge/infrastructure"
-    }
+    "uid": "a4b4a3b4-eb47-4284-9617-72a8250432f7"
   },
   "spec": {
     "annotations": [
