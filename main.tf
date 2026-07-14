@@ -70,7 +70,7 @@ module "security_group" {
     }
     web_sg = {
       name                    = "web_sg"
-      tcp_ingress_ports       = [3000, 9090] # 3000 for Open Web UI, 9090 for Prometheus
+      tcp_ingress_ports       = [3000, 5000, 9090] # 3000 for Open Web UI, 5000 for Grafana, 9090 for Prometheus
       udp_ingress_ports       = []
       allowed_cidr_blocks     = ["0.0.0.0/0"]
       allowed_security_groups = []
@@ -133,9 +133,9 @@ module "bastion_instance" {
   # }
 }
 
-resource "aws_iam_role" "prometheus" {
-  name        = "Prometheus-Role"
-  description = "IAM role for Prometheus EC2 service discovery"
+resource "aws_iam_role" "monitoring" {
+  name        = "Monitoring-Role"
+  description = "IAM role for Monitoring"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -153,20 +153,28 @@ resource "aws_iam_role" "prometheus" {
   })
 }
 
-resource "aws_iam_policy" "prometheus_ec2_sd" {
-  name        = "Prometheus-Policy"
-  description = "IAM policy for Prometheus EC2 service discovery"
+resource "aws_iam_policy" "monitoring_ec2_sd" {
+  name        = "Monitoring-Policy"
+  description = "IAM policy for Monitoring"
 
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Sid    = "PrometheusEC2ServiceDiscovery"
+        Sid    = "MonitoringEC2ServiceDiscovery"
         Effect = "Allow"
 
         Action = [
           "ec2:DescribeInstances",
-          "ec2:DescribeAvailabilityZones"
+          "ec2:DescribeAvailabilityZones",
+          "cloudwatch:GetMetricData",
+          "cloudwatch:GetMetricStatistics",
+          "cloudwatch:ListMetrics",
+          "cloudwatch:DescribeAlarms",
+          "logs:DescribeLogGroups",
+          "logs:DescribeLogStreams",
+          "logs:GetLogEvents",
+          "logs:FilterLogEvents"
         ]
 
         Resource = "*"
@@ -175,14 +183,14 @@ resource "aws_iam_policy" "prometheus_ec2_sd" {
   })
 }
 
-resource "aws_iam_role_policy_attachment" "prometheus_ec2_sd" {
-  role       = aws_iam_role.prometheus.name
-  policy_arn = aws_iam_policy.prometheus_ec2_sd.arn
+resource "aws_iam_role_policy_attachment" "monitoring_ec2_sd" {
+  role       = aws_iam_role.monitoring.name
+  policy_arn = aws_iam_policy.monitoring_ec2_sd.arn
 }
 
-resource "aws_iam_instance_profile" "prometheus" {
-  name = "Prometheus-Profile"
-  role = aws_iam_role.prometheus.name
+resource "aws_iam_instance_profile" "monitoring" {
+  name = "Monitoring-Profile"
+  role = aws_iam_role.monitoring.name
 }
 
 module "web_server_instance" {
@@ -194,7 +202,7 @@ module "web_server_instance" {
   ssh_key_name         = aws_key_pair.this.key_name
   security_group_ids   = [module.security_group.sg_ids["web_sg"], module.security_group.sg_ids["web_sg_ssh"], module.security_group.sg_ids["monitoring_sg"]]
   ami_id               = data.aws_ami.ubuntu.id
-  iam_instance_profile = aws_iam_instance_profile.prometheus.name
+  iam_instance_profile = aws_iam_instance_profile.monitoring.name
 
   user_data      = "./scripts/web-server.sh"
 

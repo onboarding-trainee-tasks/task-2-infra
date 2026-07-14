@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -euo pipefail
 export HOME='/home/ubuntu'
 
 # APT update and upgrade
@@ -45,7 +46,9 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/node_exporter
+ExecStart=/usr/local/bin/node_exporter \
+    --collector.systemd \
+    --collector.systemd.unit-include='(ollama|node_exporter)\.service'
 
 Restart=always
 RestartSec=5
