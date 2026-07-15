@@ -4,20 +4,7 @@
   "metadata": {
     "name": "addnr92",
     "namespace": "default",
-    "uid": "aceb16d9-c7c0-4301-9156-a97ac44f97b4",
-    "resourceVersion": "1784038694993993",
-    "generation": 8,
-    "creationTimestamp": "2026-07-14T14:09:31Z",
-    "labels": {
-      "grafana.app/deprecatedInternalID": "873320458240000"
-    },
-    "annotations": {
-      "grafana.app/createdBy": "user:cfs35k9bccy68d",
-      "grafana.app/folder": "",
-      "grafana.app/saved-from-ui": "Grafana v13.1.0 (b309c9bb3b)",
-      "grafana.app/updatedBy": "user:cfs35k9bccy68d",
-      "grafana.app/updatedTimestamp": "2026-07-14T14:18:14Z"
-    }
+    "uid": "aceb16d9-c7c0-4301-9156-a97ac44f97b4"
   },
   "spec": {
     "annotations": [
@@ -63,12 +50,10 @@
                       "group": "cloudwatch",
                       "version": "v0",
                       "datasource": {
-                        "name": "cloudwatch"
+                        "name": "AWS CloudWatch"
                       },
                       "spec": {
                         "dimensions": {},
-                        "label": "",
-                        "logGroups": [],
                         "matchExact": false,
                         "metricEditorMode": 0,
                         "metricName": "HealthyHostCount",
@@ -191,11 +176,10 @@
                       "group": "cloudwatch",
                       "version": "v0",
                       "datasource": {
-                        "name": "cloudwatch"
+                        "name": "AWS CloudWatch"
                       },
                       "spec": {
                         "dimensions": {},
-                        "label": "",
                         "matchExact": false,
                         "metricEditorMode": 0,
                         "metricName": "UnHealthyHostCount",
@@ -203,7 +187,7 @@
                         "namespace": "AWS/ApplicationELB",
                         "period": "60",
                         "queryMode": "Metrics",
-                        "region": "default",
+                        "region": "eu-central-1",
                         "statistic": "Maximum"
                       }
                     },
@@ -318,11 +302,10 @@
                       "group": "cloudwatch",
                       "version": "v0",
                       "datasource": {
-                        "name": "cloudwatch"
+                        "name": "AWS CloudWatch"
                       },
                       "spec": {
                         "dimensions": {},
-                        "label": "",
                         "matchExact": false,
                         "metricEditorMode": 0,
                         "metricName": "TargetResponseTime",
@@ -330,7 +313,8 @@
                         "namespace": "AWS/ApplicationELB",
                         "period": "60",
                         "queryMode": "Metrics",
-                        "region": "default"
+                        "region": "eu-central-1",
+                        "statistic": "Average"
                       }
                     },
                     "refId": "A",
@@ -344,12 +328,69 @@
           },
           "vizConfig": {
             "kind": "VizConfig",
-            "group": "__unconfigured-panel",
+            "group": "timeseries",
             "version": "13.1.0",
             "spec": {
-              "options": {},
+              "options": {
+                "annotations": {
+                  "clustering": -1,
+                  "multiLane": false
+                },
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "enableFacetedFilter": false,
+                  "overflow": "ellipsis",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "hideZeros": false,
+                  "mode": "single",
+                  "sort": "none"
+                }
+              },
               "fieldConfig": {
-                "defaults": {},
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "barWidthFactor": 0.6,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "insertNulls": false,
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "auto",
+                    "showValues": false,
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  },
+                  "unit": "s"
+                },
                 "overrides": []
               }
             }
@@ -375,19 +416,17 @@
                       "group": "cloudwatch",
                       "version": "v0",
                       "datasource": {
-                        "name": "cloudwatch"
+                        "name": "AWS CloudWatch"
                       },
                       "spec": {
                         "dimensions": {},
-                        "id": "",
-                        "label": "",
                         "metricEditorMode": 0,
                         "metricName": "HTTPCode_ELB_4XX_Count",
                         "metricQueryType": 0,
                         "namespace": "AWS/ApplicationELB",
-                        "period": "",
+                        "period": "300",
                         "queryMode": "Metrics",
-                        "region": "default",
+                        "region": "eu-central-1",
                         "statistic": "Sum"
                       }
                     },
@@ -403,24 +442,19 @@
                       "group": "cloudwatch",
                       "version": "v0",
                       "datasource": {
-                        "name": "cloudwatch"
+                        "name": "AWS CloudWatch"
                       },
                       "spec": {
                         "dimensions": {},
-                        "expression": "",
-                        "id": "",
-                        "label": "",
-                        "logGroups": [],
                         "matchExact": false,
                         "metricEditorMode": 0,
                         "metricName": "HTTPCode_Target_4XX_Count",
                         "metricQueryType": 0,
                         "namespace": "AWS/ApplicationELB",
-                        "period": "",
+                        "period": "300",
                         "queryLanguage": "CWLI",
                         "queryMode": "Metrics",
-                        "region": "default",
-                        "sqlExpression": "",
+                        "region": "eu-central-1",
                         "statistic": "Sum"
                       }
                     },
@@ -435,12 +469,68 @@
           },
           "vizConfig": {
             "kind": "VizConfig",
-            "group": "__unconfigured-panel",
+            "group": "timeseries",
             "version": "13.1.0",
             "spec": {
-              "options": {},
+              "options": {
+                "annotations": {
+                  "clustering": -1,
+                  "multiLane": false
+                },
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "enableFacetedFilter": false,
+                  "overflow": "ellipsis",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "hideZeros": false,
+                  "mode": "single",
+                  "sort": "none"
+                }
+              },
               "fieldConfig": {
-                "defaults": {},
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "barWidthFactor": 0.6,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "insertNulls": false,
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "auto",
+                    "showValues": false,
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  }
+                },
                 "overrides": []
               }
             }
@@ -466,17 +556,17 @@
                       "group": "cloudwatch",
                       "version": "v0",
                       "datasource": {
-                        "name": "cloudwatch"
+                        "name": "AWS CloudWatch"
                       },
                       "spec": {
-                        "label": "",
                         "metricEditorMode": 0,
                         "metricName": "HTTPCode_ELB_5XX_Count",
                         "metricQueryType": 0,
                         "namespace": "AWS/ApplicationELB",
                         "queryMode": "Metrics",
-                        "region": "default",
-                        "statistic": "Sum"
+                        "region": "eu-central-1",
+                        "statistic": "Sum",
+                        "period": "300"
                       }
                     },
                     "refId": "A",
@@ -491,24 +581,19 @@
                       "group": "cloudwatch",
                       "version": "v0",
                       "datasource": {
-                        "name": "cloudwatch"
+                        "name": "AWS CloudWatch"
                       },
                       "spec": {
                         "dimensions": {},
-                        "expression": "",
-                        "id": "",
-                        "label": "",
-                        "logGroups": [],
                         "matchExact": false,
                         "metricEditorMode": 0,
                         "metricName": "HTTPCode_Target_5XX_Count",
                         "metricQueryType": 0,
                         "namespace": "AWS/ApplicationELB",
-                        "period": "",
+                        "period": "300",
                         "queryLanguage": "CWLI",
                         "queryMode": "Metrics",
-                        "region": "default",
-                        "sqlExpression": "",
+                        "region": "eu-central-1",
                         "statistic": "Sum"
                       }
                     },
@@ -523,12 +608,68 @@
           },
           "vizConfig": {
             "kind": "VizConfig",
-            "group": "__unconfigured-panel",
+            "group": "timeseries",
             "version": "13.1.0",
             "spec": {
-              "options": {},
+              "options": {
+                "annotations": {
+                  "clustering": -1,
+                  "multiLane": false
+                },
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "enableFacetedFilter": false,
+                  "overflow": "ellipsis",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "hideZeros": false,
+                  "mode": "single",
+                  "sort": "none"
+                }
+              },
               "fieldConfig": {
-                "defaults": {},
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "barWidthFactor": 0.6,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "insertNulls": false,
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "auto",
+                    "showValues": false,
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  }
+                },
                 "overrides": []
               }
             }
@@ -614,7 +755,7 @@
     "tags": [],
     "timeSettings": {
       "timezone": "browser",
-      "from": "now-5m",
+      "from": "now-1h",
       "to": "now",
       "autoRefresh": "auto",
       "autoRefreshIntervals": [

@@ -1,0 +1,363 @@
+apiVersion: 1
+groups:
+    - orgId: 1
+      name: Host resources
+      folder: Infrastructure
+      interval: 1m
+      rules:
+        - uid: efs5wga6xb0g0d
+          title: '[llm]-[test]-[ec2]-[high]-[cpu]'
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: prometheus
+              model:
+                datasource:
+                    type: prometheus
+                    uid: prometheus
+                editorMode: code
+                expr: "100 * (\r\n  1 -\r\n  avg by (instance, instance_name, instance_id, role) (\r\n    rate(\r\n      node_cpu_seconds_total{\r\n        job=~\"(llm|bastion|web-server)-node-exporter\",\r\n        mode=\"idle\"\r\n      }[5m]\r\n    )\r\n  )\r\n)"
+                hide: false
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 90
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params: []
+                      reducer:
+                        params: []
+                        type: avg
+                      type: query
+                datasource:
+                    name: Expression
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                hide: false
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: NoData
+          execErrState: Error
+          for: 2m
+          labels:
+            component: ec2
+            environment: test
+            metric: cpu
+            priority: high
+            project: llm
+          isPaused: false
+          notification_settings:
+            receiver: empty
+        - uid: bfs5wnaif2f40c
+          title: '[llm]-[test]-[ec2]-[low]-[cpu]'
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: prometheus
+              model:
+                datasource:
+                    type: prometheus
+                    uid: prometheus
+                editorMode: code
+                expr: "100 * (\r\n  1 -\r\n  avg by (instance, instance_name, instance_id, role) (\r\n    rate(\r\n      node_cpu_seconds_total{\r\n        job=~\"(llm|bastion|web-server)-node-exporter\",\r\n        mode=\"idle\"\r\n      }[5m]\r\n    )\r\n  )\r\n)"
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 70
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params: []
+                      reducer:
+                        params: []
+                        type: avg
+                      type: query
+                datasource:
+                    name: Expression
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: NoData
+          execErrState: Error
+          for: 5m
+          labels:
+            component: ec2
+            environment: test
+            metric: cpu
+            priority: low
+            project: llm
+          isPaused: false
+          notification_settings:
+            receiver: empty
+        - uid: dfs5wr7swaz28c
+          title: '[llm]-[test]-[ec2]-[high]-[memory]'
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: prometheus
+              model:
+                datasource:
+                    type: prometheus
+                    uid: prometheus
+                editorMode: code
+                expr: "100 * (\r\n  1 -\r\n  node_memory_MemAvailable_bytes{\r\n    job=~\"(llm|bastion|web-server)-node-exporter\"\r\n  }\r\n  /\r\n  node_memory_MemTotal_bytes{\r\n    job=~\"(llm|bastion|web-server)-node-exporter\"\r\n  }\r\n)"
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 90
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params: []
+                      reducer:
+                        params: []
+                        type: avg
+                      type: query
+                datasource:
+                    name: Expression
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: NoData
+          execErrState: Error
+          for: 2m
+          labels:
+            component: ec2
+            environment: test
+            metric: memory
+            priority: high
+            project: llm
+          isPaused: false
+          notification_settings:
+            receiver: empty
+        - uid: bfs5wtfdpunlsc
+          title: '[llm]-[test]-[ec2]-[low]-[memory]'
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: prometheus
+              model:
+                datasource:
+                    type: prometheus
+                    uid: prometheus
+                editorMode: code
+                expr: "100 * (\r\n  1 -\r\n  node_memory_MemAvailable_bytes{\r\n    job=~\"(llm|bastion|web-server)-node-exporter\"\r\n  }\r\n  /\r\n  node_memory_MemTotal_bytes{\r\n    job=~\"(llm|bastion|web-server)-node-exporter\"\r\n  }\r\n)"
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 70
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params: []
+                      reducer:
+                        params: []
+                        type: avg
+                      type: query
+                datasource:
+                    name: Expression
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: NoData
+          execErrState: Error
+          for: 5m
+          labels:
+            component: ec2
+            environment: test
+            metric: memory
+            priority: low
+            project: llm
+          isPaused: false
+          notification_settings:
+            receiver: empty
+        - uid: cfs5wxfo775s0c
+          title: '[llm]-[test]-[ec2]-[high]-[disk-space]'
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: prometheus
+              model:
+                datasource:
+                    type: prometheus
+                    uid: prometheus
+                editorMode: code
+                expr: "100 * (\r\n  1 -\r\n  node_filesystem_avail_bytes{\r\n    job=~\"(llm|bastion|web-server)-node-exporter\",\r\n    mountpoint=\"/\"\r\n  }\r\n  /\r\n  node_filesystem_size_bytes{\r\n    job=~\"(llm|bastion|web-server)-node-exporter\",\r\n    mountpoint=\"/\"\r\n  }\r\n)"
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 90
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params: []
+                      reducer:
+                        params: []
+                        type: avg
+                      type: query
+                datasource:
+                    name: Expression
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: NoData
+          execErrState: Error
+          for: 2m
+          labels:
+            component: ec2
+            environment: test
+            metric: disk-space
+            priority: high
+            project: llm
+          isPaused: false
+          notification_settings:
+            receiver: empty
+        - uid: afs5wynwfh4hsd
+          title: '[llm]-[test]-[ec2]-[low]-[disk-space]'
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: prometheus
+              model:
+                datasource:
+                    type: prometheus
+                    uid: prometheus
+                editorMode: code
+                expr: "100 * (\r\n  1 -\r\n  node_filesystem_avail_bytes{\r\n    job=~\"(llm|bastion|web-server)-node-exporter\",\r\n    mountpoint=\"/\"\r\n  }\r\n  /\r\n  node_filesystem_size_bytes{\r\n    job=~\"(llm|bastion|web-server)-node-exporter\",\r\n    mountpoint=\"/\"\r\n  }\r\n)"
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 70
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params: []
+                      reducer:
+                        params: []
+                        type: avg
+                      type: query
+                datasource:
+                    name: Expression
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: NoData
+          execErrState: Error
+          for: 5m
+          labels:
+            component: ec2
+            environment: test
+            metric: disk-space
+            priority: low
+            project: llm
+          isPaused: false
+          notification_settings:
+            receiver: empty
