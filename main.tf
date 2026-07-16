@@ -20,10 +20,6 @@ module "network" {
       cidr = "10.10.4.0/24"
       type = "private"
     }
-    # private_subnet_3 = {
-    #   cidr = "10.10.7.0/24"
-    #   type = "private"
-    # }
     database_subnet_1 = {
       cidr = "10.10.5.0/24"
       type = "database"
@@ -92,15 +88,15 @@ module "security_group" {
   }
 }
 
-# module "rds" {
-#   source             = "./modules/rds"
-#   subnet_ids         = module.network.database_subnet_ids
-#   security_group_ids = [module.security_group.sg_ids["database_sg"]]
-#   db_secret_id       = data.aws_secretsmanager_secret_version.rds_secrets_version
-#   db_name            = var.db_name
-#   instance_class     = var.rds_instance_class
-#   allocated_storage  = var.rds_allocated_storage
-# }
+module "rds" {
+  source             = "./modules/rds"
+  subnet_ids         = module.network.database_subnet_ids
+  security_group_ids = [module.security_group.sg_ids["database_sg"]]
+  db_secret_id       = data.aws_secretsmanager_secret_version.rds_secrets_version
+  db_name            = var.db_name
+  instance_class     = var.rds_instance_class
+  allocated_storage  = var.rds_allocated_storage
+}
 
 module "iam" {
   source        = "./modules/iam"
@@ -123,14 +119,14 @@ module "bastion_instance" {
   ami_id               = data.aws_ami.ubuntu.id
   iam_instance_profile = module.iam.iam_instance_profile_name
 
-  # user_data = "./scripts/psql.sh"
+  user_data = "./scripts/bastion.sh"
   
-  # user_data_vars = {
-  #   DB_USERNAME = module.rds.db_username
-  #   DB_PASSWORD = module.rds.db_password
-  #   DB_ENDPOINT = module.rds.db_endpoint
-  #   DB_NAME     = module.rds.db_name
-  # }
+  user_data_vars = {
+    DB_USERNAME = module.rds.db_username
+    DB_PASSWORD = module.rds.db_password
+    DB_ENDPOINT = module.rds.db_endpoint
+    DB_NAME     = module.rds.db_name
+  }
 }
 
 resource "aws_iam_role" "monitoring" {
@@ -208,10 +204,10 @@ module "web_server_instance" {
 
   user_data_vars = {
     DNS_NAME = module.alb.load_balancer_dns_name
-    # DB_USERNAME = module.rds.db_username
-    # DB_PASSWORD = module.rds.db_password
-    # DB_ENDPOINT = module.rds.db_endpoint
-    # DB_NAME     = module.rds.db_name
+    DB_USERNAME = module.rds.db_username
+    DB_PASSWORD = module.rds.db_password
+    DB_ENDPOINT = module.rds.db_endpoint
+    DB_NAME     = module.rds.db_name
   }
 }
 
@@ -256,5 +252,5 @@ module "cloudwatch" {
   load_balancer_arn_suffix = module.alb.load_balancer_arn_suffix
   target_group_arn_suffix  = module.alb.target_group_arn_suffix
 
-  # db_instance_identifier = module.rds.db_instance_identifier
+  db_instance_identifier = module.rds.db_instance_identifier
 }

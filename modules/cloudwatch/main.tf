@@ -89,91 +89,91 @@ resource "aws_cloudwatch_metric_alarm" "alb_target_5xx" {
   treat_missing_data = "notBreaching"
 }
 
-# resource "aws_cloudwatch_metric_alarm" "db_high_cpu" {
-#   alarm_name = "[${var.project}]-[${var.environment}]-[db]-[high]-[cpu]"
+resource "aws_cloudwatch_metric_alarm" "db_high_cpu" {
+  alarm_name = "[${var.project}]-[${var.environment}]-[db]-[high]-[cpu]"
 
-#   namespace   = "AWS/RDS"
-#   metric_name = "CPUUtilization"
+  namespace   = "AWS/RDS"
+  metric_name = "CPUUtilization"
 
-#   comparison_operator = "GreaterThanThreshold"
-#   threshold           = 80
+  comparison_operator = "GreaterThanThreshold"
+  threshold           = 80
 
-#   evaluation_periods = 2
-#   period             = 300
-#   statistic          = "Average"
+  evaluation_periods = 2
+  period             = 300
+  statistic          = "Average"
 
-#   dimensions = {
-#     DBInstanceIdentifier = var.db_instance_identifier
-#   }
+  dimensions = {
+    DBInstanceIdentifier = var.db_instance_identifier
+  }
 
-#   alarm_actions = [
-#     data.aws_sns_topic.alerts.arn
-#   ]
+  alarm_actions = [
+    data.aws_sns_topic.alerts.arn
+  ]
 
-#   ok_actions = [
-#     data.aws_sns_topic.alerts.arn
-#   ]
+  ok_actions = [
+    data.aws_sns_topic.alerts.arn
+  ]
 
-#   treat_missing_data = "notBreaching"
-# }
+  treat_missing_data = "notBreaching"
+}
 
-# resource "aws_cloudwatch_metric_alarm" "db_low_memory" {
-#   alarm_name = "[${var.project}]-[${var.environment}]-[db]-[high]-[memory]"
+resource "aws_cloudwatch_metric_alarm" "db_low_memory" {
+  alarm_name = "[${var.project}]-[${var.environment}]-[db]-[high]-[memory]"
 
-#   namespace   = "AWS/RDS"
-#   metric_name = "FreeableMemory"
+  namespace   = "AWS/RDS"
+  metric_name = "FreeableMemory"
 
-#   comparison_operator = "LessThanThreshold"
+  comparison_operator = "LessThanThreshold"
 
-#   threshold = 536870912 # 512 MiB
+  threshold = 536870912 # 512 MiB
 
-#   evaluation_periods = 2
-#   period             = 300
-#   statistic          = "Average"
+  evaluation_periods = 2
+  period             = 300
+  statistic          = "Average"
 
-#   dimensions = {
-#     DBInstanceIdentifier = var.db_instance_identifier
-#   }
+  dimensions = {
+    DBInstanceIdentifier = var.db_instance_identifier
+  }
 
-#   alarm_actions = [
-#     data.aws_sns_topic.alerts.arn
-#   ]
+  alarm_actions = [
+    data.aws_sns_topic.alerts.arn
+  ]
 
-#   ok_actions = [
-#     data.aws_sns_topic.alerts.arn
-#   ]
+  ok_actions = [
+    data.aws_sns_topic.alerts.arn
+  ]
 
-#   treat_missing_data = "notBreaching"
-# }
+  treat_missing_data = "notBreaching"
+}
 
-# resource "aws_cloudwatch_metric_alarm" "db_low_storage" {
-#   alarm_name = "[${var.project}]-[${var.environment}]-[db]-[high]-[storage]"
+resource "aws_cloudwatch_metric_alarm" "db_low_storage" {
+  alarm_name = "[${var.project}]-[${var.environment}]-[db]-[high]-[storage]"
 
-#   namespace   = "AWS/RDS"
-#   metric_name = "FreeStorageSpace"
+  namespace   = "AWS/RDS"
+  metric_name = "FreeStorageSpace"
 
-#   comparison_operator = "LessThanThreshold"
+  comparison_operator = "LessThanThreshold"
 
-#   threshold = 5368709120 # 5 GiB
+  threshold = 5368709120 # 5 GiB
 
-#   evaluation_periods = 1
-#   period             = 300
-#   statistic          = "Average"
+  evaluation_periods = 1
+  period             = 300
+  statistic          = "Average"
 
-#   dimensions = {
-#     DBInstanceIdentifier = var.db_instance_identifier
-#   }
+  dimensions = {
+    DBInstanceIdentifier = var.db_instance_identifier
+  }
 
-#   alarm_actions = [
-#     data.aws_sns_topic.alerts.arn
-#   ]
+  alarm_actions = [
+    data.aws_sns_topic.alerts.arn
+  ]
 
-#   ok_actions = [
-#     data.aws_sns_topic.alerts.arn
-#   ]
+  ok_actions = [
+    data.aws_sns_topic.alerts.arn
+  ]
 
-#   treat_missing_data = "notBreaching"
-# }
+  treat_missing_data = "notBreaching"
+}
 
 resource "aws_cloudwatch_metric_alarm" "web_status_check_failed" {
   alarm_name = "[${var.project}]-[${var.environment}]-[ec2]-[web]-[status-check-failed]"

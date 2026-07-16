@@ -2,6 +2,57 @@
 
 sudo apt update
 
+### Install Alert Manager
+
+wget \
+  "https://github.com/prometheus/alertmanager/releases/download/v0.33.1/alertmanager-0.33.1.linux-amd64.tar.gz"
+
+tar xzf \
+  "alertmanager-0.33.1.linux-amd64.tar.gz"
+
+sudo useradd \
+  --system \
+  --no-create-home \
+  --shell /usr/sbin/nologin \
+  alertmanager || true
+
+sudo install \
+  -m 0755 \
+  "alertmanager-0.33.1.linux-amd64/alertmanager" \
+  /usr/local/bin/alertmanager
+
+sudo install \
+  -m 0755 \
+  "alertmanager-0.33.1.linux-amd64/amtool" \
+  /usr/local/bin/amtool
+
+sudo mkdir -p /etc/alertmanager/secrets
+sudo mkdir -p /var/lib/alertmanager
+
+sudo chown -R alertmanager:alertmanager /var/lib/alertmanager
+
+echo "[Unit]
+Description=Prometheus Alertmanager
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+
+User=alertmanager
+Group=alertmanager
+
+ExecStart=/usr/local/bin/alertmanager \
+    --config.file=/etc/alertmanager/alertmanager.yaml \
+    --storage.path=/var/lib/alertmanager \
+    --web.listen-address=127.0.0.1:9093
+
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target" > /etc/systemd/system/alertmanager.service
+
 ### Install Prometheus
 
 wget https://github.com/prometheus/prometheus/releases/download/v3.13.0/prometheus-3.13.0.linux-amd64.tar.gz
@@ -19,6 +70,15 @@ echo "global:
   scrape_interval: 15s
   scrape_timeout: 10s
   evaluation_interval: 15s
+
+rule_files:
+  - "/etc/prometheus/rules/*.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - "127.0.0.1:9093"
 
 scrape_configs:
   - job_name: "llm-node-exporter"
@@ -163,7 +223,7 @@ Wants=network-online.target
 Type=simple
 ExecStart=/usr/local/bin/node_exporter \
     --collector.systemd \
-    --collector.systemd.unit-include='(prometheus|grafana-server|node_exporter|docker)\.service'
+    --collector.systemd.unit-include='(prometheus|grafana-server|node_exporter|docker|alertmanager)\.service'
 
 Restart=always
 RestartSec=5
@@ -203,6 +263,6 @@ sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin dock
 sudo apt install python3-pip python3.12-venv -y
 python3 -m venv venv
 source venv/bin/activate
-# pip install open-webui[all]
+pip install open-webui[all]
 
-# sudo docker run -d -p 3000:8080 -e OLLAMA_BASE_URL="http://${DNS_NAME}" --name open-webui --restart always ghcr.io/open-webui/open-webui:main-slim
+sudo docker run -d -p 3000:8080 -e OLLAMA_BASE_URL="http://${DNS_NAME}" -e DATABASE_URL="postgresql://${DB_USERNAME}:${DB_PASSWORD}@${DB_ENDPOINT}/${DB_NAME}" --name open-webui --restart always ghcr.io/open-webui/open-webui:main-slim
