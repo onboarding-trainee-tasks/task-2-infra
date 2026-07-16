@@ -26,8 +26,6 @@ sleep 10
 
 # Pull the tinyllama model
 ollama pull tinyllama
-ollama run tinyllama
-
 
 ### Install Node Exporter
 
@@ -59,4 +57,3 @@ WantedBy=multi-user.target" > /etc/systemd/system/node_exporter.service
 sudo systemctl daemon-reload
 sudo systemctl enable node_exporter
 sudo systemctl start node_exporter
-# ./node_exporter &

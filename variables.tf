@@ -29,10 +29,10 @@ variable "aws_region" {
   default     = "eu-central-1"
 }
 
-variable "ssh_key_path" {
-  description = "Path to the SSH key pair for EC2 instances"
+variable "ssh_key_name" {
+  description = "Name of the SSH key pair for EC2 instances"
   type        = string
-  default     = "C:\\Onboarding\\.ssh\\terraform-ssh-key.pub"
+  default     = "terraform-ssh-key"
 }
 
 variable "s3_bucket_arn" {

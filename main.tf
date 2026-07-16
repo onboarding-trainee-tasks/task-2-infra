@@ -103,18 +103,13 @@ module "iam" {
   s3_bucket_arn = var.s3_bucket_arn
 }
 
-resource "aws_key_pair" "this" {
-  key_name   = "terraform-key"
-  public_key = file("${var.ssh_key_path}")
-}
-
 module "bastion_instance" {
   source               = "./modules/instance"
   instance_name        = "bastion"
   instance_type        = "t3.micro"
   volume_size          = 8
   subnet_id            = module.network.public_subnet_ids[1] # second public subnet for bastion
-  ssh_key_name         = aws_key_pair.this.key_name
+  ssh_key_name         = var.ssh_key_name
   security_group_ids   = [module.security_group.sg_ids["bastion_sg"], module.security_group.sg_ids["monitoring_sg"]]
   ami_id               = data.aws_ami.ubuntu.id
   iam_instance_profile = module.iam.iam_instance_profile_name
@@ -195,7 +190,7 @@ module "web_server_instance" {
   instance_type        = "t3.small"
   volume_size          = 30
   subnet_id            = module.network.public_subnet_ids[0]
-  ssh_key_name         = aws_key_pair.this.key_name
+  ssh_key_name         = var.ssh_key_name
   security_group_ids   = [module.security_group.sg_ids["web_sg"], module.security_group.sg_ids["web_sg_ssh"], module.security_group.sg_ids["monitoring_sg"]]
   ami_id               = data.aws_ami.ubuntu.id
   iam_instance_profile = aws_iam_instance_profile.monitoring.name
@@ -231,7 +226,7 @@ module "asg" {
 
   lb_target_group_arn = module.alb.target_group_arn
   security_group_ids  = [module.security_group.sg_ids["ollama_sg"], module.security_group.sg_ids["monitoring_sg"]]
-  key_name            = aws_key_pair.this.key_name
+  key_name            = var.ssh_key_name
   user_data           = "./scripts/ollama-setup.sh"
 }
 

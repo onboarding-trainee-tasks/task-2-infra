@@ -260,9 +260,15 @@ sudo apt update
 sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
 
 # Install dependencies for PostgreSQL support for Open WebUI
-sudo apt install python3-pip python3.12-venv -y
-python3 -m venv venv
-source venv/bin/activate
-pip install open-webui[all]
+# sudo apt install python3-pip python3.12-venv -y
+# python3 -m venv venv
+# source venv/bin/activate
+# pip install open-webui[all]
 
-sudo docker run -d -p 3000:8080 -e OLLAMA_BASE_URL="http://${DNS_NAME}" -e DATABASE_URL="postgresql://${DB_USERNAME}:${DB_PASSWORD}@${DB_ENDPOINT}/${DB_NAME}" --name open-webui --restart always ghcr.io/open-webui/open-webui:main-slim
+sudo docker run -d -p 3000:8080 \
+  -e OLLAMA_BASE_URL="http://${DNS_NAME}" \
+  -e DATABASE_URL="postgresql://${DB_USERNAME}:${DB_PASSWORD}@${DB_ENDPOINT}/${DB_NAME}" \
+  -e VECTOR_DB="pgvector" \
+  -v open-webui:/app/backend/data \
+  --name open-webui \
+  --restart always ghcr.io/open-webui/open-webui:main-slim
