@@ -115,7 +115,7 @@ module "bastion_instance" {
   subnet_id            = module.network.public_subnet_ids[1] # second public subnet for bastion
   ssh_key_name         = var.ssh_key_name
   security_group_ids   = [module.security_group.sg_ids["bastion_sg"], module.security_group.sg_ids["monitoring_sg"]]
-  ami_id               = data.aws_ami.ubuntu.id
+  ami_id               = var.packer_bastion_ami
   iam_instance_profile = module.iam.iam_instance_profile_name
 
   user_data = "./scripts/bastion.sh"
@@ -213,7 +213,7 @@ module "web_server_instance" {
   subnet_id            = module.network.public_subnet_ids[0]
   ssh_key_name         = var.ssh_key_name
   security_group_ids   = [module.security_group.sg_ids["web_sg"], module.security_group.sg_ids["web_sg_ssh"], module.security_group.sg_ids["monitoring_sg"]]
-  ami_id               = data.aws_ami.ubuntu.id
+  ami_id               = var.packer_web_server_ami
   iam_instance_profile = aws_iam_instance_profile.monitoring.name
 
   user_data = "./scripts/web-server.sh"
@@ -250,7 +250,6 @@ module "asg" {
   lb_target_group_arn = module.alb.target_group_arn
   security_group_ids  = [module.security_group.sg_ids["ollama_sg"], module.security_group.sg_ids["monitoring_sg"]]
   key_name            = var.ssh_key_name
-  # user_data           = "./scripts/ollama-setup.sh"
 }
 
 module "cloudwatch" {

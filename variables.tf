@@ -1,19 +1,19 @@
 variable "packer_bastion_ami" {
   description = "ID of AMI created by Packer for Bastion Host"
   type        = string
-  default     = null
+  default     = "ami-01dcaea3a368849c9"
 }
 
 variable "packer_llm_ami" {
   description = "ID of AMI created by Packer for LLM Hosts"
   type        = string
-  default     = "ami-0f2cb3b18f989c61a"
+  default     = "ami-031e1b98dc35b8aaa"
 }
 
 variable "packer_web_server_ami" {
   description = "ID of AMI created by Packer for Web Server"
   type        = string
-  default     = null
+  default     = "ami-0fbbd30e2c7115049"
 }
 
 variable "allowed_cidr_blocks" {
