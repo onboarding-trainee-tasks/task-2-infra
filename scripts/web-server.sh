@@ -1,6 +1,49 @@
 #!/bin/bash
 
+set -e
+
+AWS_REGION="${AWS_REGION}"
+DB_SECRET_ARN="${DB_SECRET_ARN}"
+SMTP_SECRET_ARN="${SMTP_SECRET_ARN}"
+DB_HOST="${DB_HOST}"
+DB_PORT="${DB_PORT}"
+DB_NAME="${DB_NAME}"
+DNS_NAME="${DNS_NAME}"
+
 sudo apt update
+sudo apt-get install -y curl wget unzip jq
+
+### Install AWS CLI
+
+cd /tmp
+
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o awscliv2.zip
+unzip -q awscliv2.zip
+sudo ./aws/install
+
+### Get database secret
+
+DB_SECRET_JSON=$(aws secretsmanager get-secret-value \
+  --region "$AWS_REGION" \
+  --secret-id "$DB_SECRET_ARN" \
+  --query SecretString \
+  --output text)
+
+DB_USERNAME=$(echo "$DB_SECRET_JSON" | jq -r '.db_username')
+DB_PASSWORD=$(echo "$DB_SECRET_JSON" | jq -r '.db_password')
+
+### Get SMTP secret
+
+SMTP_SECRET_JSON=$(aws secretsmanager get-secret-value \
+  --region "$AWS_REGION" \
+  --secret-id "$SMTP_SECRET_ARN" \
+  --query SecretString \
+  --output text)
+
+SMTP_USERNAME=$(echo "$SMTP_SECRET_JSON" | jq -r '.smtp_username')
+SMTP_PASSWORD=$(echo "$SMTP_SECRET_JSON" | jq -r '.smtp_password')
+SMTP_FROM=$(echo "$SMTP_SECRET_JSON" | jq -r '.smtp_from')
+SMTP_TO=$(echo "$SMTP_SECRET_JSON" | jq -r '.smtp_to')
 
 ### Install Alert Manager
 
@@ -28,6 +71,67 @@ sudo install \
 
 sudo mkdir -p /etc/alertmanager/secrets
 sudo mkdir -p /var/lib/alertmanager
+
+### Create SMTP password file
+
+sudo install \
+  -d \
+  -o root \
+  -g alertmanager \
+  -m 0750 \
+  /etc/alertmanager/secrets
+
+printf '%s' "$SMTP_PASSWORD" \
+  | sudo tee /etc/alertmanager/secrets/smtp_password \
+  > /dev/null
+
+sudo chown \
+  root:alertmanager \
+  /etc/alertmanager/secrets/smtp_password
+
+sudo chmod \
+  0640 \
+  /etc/alertmanager/secrets/smtp_password
+
+sudo tee /etc/alertmanager/alertmanager.yaml > /dev/null <<EOF
+global:
+  resolve_timeout: 5m
+
+  smtp_smarthost: "smtp.gmail.com:587"
+  smtp_from: "$SMTP_FROM"
+  smtp_auth_username: "$SMTP_USERNAME"
+  smtp_auth_password_file: "/etc/alertmanager/secrets/smtp_password"
+  smtp_require_tls: true
+
+route:
+  receiver: email-default
+
+  group_by:
+    - alertname
+    - environment
+    - severity
+
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+
+receivers:
+  - name: email-default
+    email_configs:
+      - to: "$SMTP_TO"
+        send_resolved: true
+
+        headers:
+          Subject: '[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}'
+EOF
+
+sudo chown \
+  root:alertmanager \
+  /etc/alertmanager/alertmanager.yaml
+
+sudo chmod \
+  0640 \
+  /etc/alertmanager/alertmanager.yaml
 
 sudo chown -R alertmanager:alertmanager /var/lib/alertmanager
 
@@ -259,16 +363,30 @@ sudo apt update
 
 sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
 
-# Install dependencies for PostgreSQL support for Open WebUI
-# sudo apt install python3-pip python3.12-venv -y
-# python3 -m venv venv
-# source venv/bin/activate
-# pip install open-webui[all]
+DB_USERNAME_URL=$(printf '%s' "$DB_USERNAME" | jq -sRr @uri)
+DB_PASSWORD_URL=$(printf '%s' "$DB_PASSWORD" | jq -sRr @uri)
 
-sudo docker run -d -p 3000:8080 \
-  -e OLLAMA_BASE_URL="http://${DNS_NAME}" \
-  -e DATABASE_URL="postgresql://${DB_USERNAME}:${DB_PASSWORD}@${DB_ENDPOINT}/${DB_NAME}" \
+DATABASE_URL="postgresql://$DB_USERNAME_URL:$DB_PASSWORD_URL@$DB_HOST:$DB_PORT/$DB_NAME"
+
+sudo docker run -d \
+  -p 3000:8080 \
+  -e OLLAMA_BASE_URL="http://$DNS_NAME" \
+  -e DATABASE_URL="$DATABASE_URL" \
   -e VECTOR_DB="pgvector" \
-  -v open-webui:/app/backend/data \
+  -v open-webui-data:/app/backend/data \
   --name open-webui \
-  --restart always ghcr.io/open-webui/open-webui:main-slim
+  --restart always \
+  ghcr.io/open-webui/open-webui:main-slim
+
+unset DB_SECRET_JSON
+unset DB_USERNAME
+unset DB_PASSWORD
+unset DB_USERNAME_URL
+unset DB_PASSWORD_URL
+unset DATABASE_URL
+
+unset SMTP_SECRET_JSON
+unset SMTP_USERNAME
+unset SMTP_PASSWORD
+unset SMTP_FROM
+unset SMTP_TO

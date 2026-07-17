@@ -1,20 +1,19 @@
-data "aws_ami" "ubuntu" {
-  most_recent = true
-
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*"]
-  }
-
-  owners = ["099720109477"] # Canonical
+variable "packer_bastion_ami" {
+  description = "ID of AMI created by Packer for Bastion Host"
+  type        = string
+  default     = null
 }
 
-data "aws_secretsmanager_secret" "rds_secrets" {
-  arn = "arn:aws:secretsmanager:eu-central-1:583955898731:secret:Task-1-RDS-Secrets-JXWRuA"
+variable "packer_llm_ami" {
+  description = "ID of AMI created by Packer for LLM Hosts"
+  type        = string
+  default     = "ami-0f2cb3b18f989c61a"
 }
 
-data "aws_secretsmanager_secret_version" "rds_secrets_version" {
-  secret_id = data.aws_secretsmanager_secret.rds_secrets.id
+variable "packer_web_server_ami" {
+  description = "ID of AMI created by Packer for Web Server"
+  type        = string
+  default     = null
 }
 
 variable "allowed_cidr_blocks" {
@@ -50,7 +49,7 @@ variable "db_name" {
 variable "min_instance_count" {
   description = "The minimum number of instances for the Auto Scaling group"
   type        = number
-  default     = 1
+  default     = 2
 }
 
 variable "max_instance_count" {
@@ -62,7 +61,7 @@ variable "max_instance_count" {
 variable "desired_instance_count" {
   description = "The desired number of instances for the Auto Scaling group"
   type        = number
-  default     = 1
+  default     = 2
 }
 
 variable "rds_instance_class" {
@@ -79,14 +78,14 @@ variable "rds_allocated_storage" {
 
 variable "autoscaling_policy_value" {
   description = "Target value for the metric"
-  type = number
-  default = 80
+  type        = number
+  default     = 80
 }
 
 variable "sns_topic_name" {
   description = "Name of the SNS Topic for CloudWatch"
-  type = string
-  default = "task-2-alerts"
+  type        = string
+  default     = "task-2-alerts"
 }
 
 variable "project" {

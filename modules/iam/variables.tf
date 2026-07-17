@@ -8,3 +8,9 @@ variable "iam_name" {
   type        = string
   default     = "EC2-Profile"
 }
+
+variable "secret_arns" {
+  description = "Secrets that the EC2 instance can read"
+  type        = list(string)
+  default     = []
+}

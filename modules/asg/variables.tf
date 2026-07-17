@@ -61,6 +61,7 @@ variable "lb_target_group_arn" {
 variable "user_data" {
   description = "The user data to provide when launching the instances."
   type        = string
+  default     = null
 }
 
 variable "autoscaling_target_value" {

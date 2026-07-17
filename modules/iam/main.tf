@@ -22,19 +22,32 @@ resource "aws_iam_policy" "this" {
 
   policy = jsonencode({
     Version = "2012-10-17"
+
     Statement = [
-        {
-            Action = [
-                "s3:ListBucket",
-                "s3:ListObject",
-                "s3:GetObject",
-            ]
-            Resource = [
-                var.s3_bucket_arn,
-                "${var.s3_bucket_arn}/*"
-            ]
-            Effect = "Allow"
-        }
+      {
+        Sid    = "ReadInitSqlFromS3"
+        Effect = "Allow"
+
+        Action = [
+          "s3:ListBucket",
+          "s3:GetObject"
+        ]
+
+        Resource = [
+          var.s3_bucket_arn,
+          "${var.s3_bucket_arn}/*"
+        ]
+      },
+      {
+        Sid    = "ReadDatabaseSecret"
+        Effect = "Allow"
+
+        Action = [
+          "secretsmanager:GetSecretValue"
+        ]
+
+        Resource = var.secret_arns
+      }
     ]
   })
 }

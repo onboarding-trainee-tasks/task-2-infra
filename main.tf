@@ -52,7 +52,7 @@ module "security_group" {
     }
     ollama_sg = {
       name                    = "ollama_sg"
-      tcp_ingress_ports       = [22, 11434]   # 11434 for Ollama
+      tcp_ingress_ports       = [22, 11434] # 11434 for Ollama
       udp_ingress_ports       = []
       allowed_cidr_blocks     = []
       allowed_security_groups = ["bastion_sg", "web_sg", "alb_sg"]
@@ -101,6 +101,10 @@ module "rds" {
 module "iam" {
   source        = "./modules/iam"
   s3_bucket_arn = var.s3_bucket_arn
+
+  secret_arns = [
+    data.aws_secretsmanager_secret.rds_secrets.arn
+  ]
 }
 
 module "bastion_instance" {
@@ -115,12 +119,13 @@ module "bastion_instance" {
   iam_instance_profile = module.iam.iam_instance_profile_name
 
   user_data = "./scripts/bastion.sh"
-  
+
   user_data_vars = {
-    DB_USERNAME = module.rds.db_username
-    DB_PASSWORD = module.rds.db_password
-    DB_ENDPOINT = module.rds.db_endpoint
-    DB_NAME     = module.rds.db_name
+    AWS_REGION    = var.aws_region
+    DB_SECRET_ARN = data.aws_secretsmanager_secret.rds_secrets.arn
+    DB_HOST       = module.rds.db_host
+    DB_PORT       = module.rds.db_port
+    DB_NAME       = module.rds.db_name
   }
 }
 
@@ -150,18 +155,21 @@ resource "aws_iam_policy" "monitoring_ec2_sd" {
 
   policy = jsonencode({
     Version = "2012-10-17"
+
     Statement = [
       {
-        Sid    = "MonitoringEC2ServiceDiscovery"
+        Sid    = "MonitoringAWSAccess"
         Effect = "Allow"
 
         Action = [
           "ec2:DescribeInstances",
           "ec2:DescribeAvailabilityZones",
+
           "cloudwatch:GetMetricData",
           "cloudwatch:GetMetricStatistics",
           "cloudwatch:ListMetrics",
           "cloudwatch:DescribeAlarms",
+
           "logs:DescribeLogGroups",
           "logs:DescribeLogStreams",
           "logs:GetLogEvents",
@@ -169,6 +177,19 @@ resource "aws_iam_policy" "monitoring_ec2_sd" {
         ]
 
         Resource = "*"
+      },
+      {
+        Sid    = "ReadApplicationSecrets"
+        Effect = "Allow"
+
+        Action = [
+          "secretsmanager:GetSecretValue"
+        ]
+
+        Resource = [
+          data.aws_secretsmanager_secret.rds_secrets.arn,
+          data.aws_secretsmanager_secret.smtp_secrets.arn
+        ]
       }
     ]
   })
@@ -195,14 +216,16 @@ module "web_server_instance" {
   ami_id               = data.aws_ami.ubuntu.id
   iam_instance_profile = aws_iam_instance_profile.monitoring.name
 
-  user_data      = "./scripts/web-server.sh"
+  user_data = "./scripts/web-server.sh"
 
   user_data_vars = {
+    AWS_REGION = var.aws_region
+    DB_SECRET_ARN = data.aws_secretsmanager_secret.rds_secrets.arn
+    SMTP_SECRET_ARN = data.aws_secretsmanager_secret.smtp_secrets.arn
+    DB_HOST = module.rds.db_host
+    DB_PORT = module.rds.db_port
+    DB_NAME = module.rds.db_name
     DNS_NAME = module.alb.load_balancer_dns_name
-    DB_USERNAME = module.rds.db_username
-    DB_PASSWORD = module.rds.db_password
-    DB_ENDPOINT = module.rds.db_endpoint
-    DB_NAME     = module.rds.db_name
   }
 }
 
@@ -215,7 +238,7 @@ module "alb" {
 
 module "asg" {
   source              = "./modules/asg"
-  image_id            = data.aws_ami.ubuntu.id
+  image_id            = var.packer_llm_ami
   instance_type       = "t3.small"
   vpc_zone_identifier = module.network.private_subnet_ids
 
@@ -227,7 +250,7 @@ module "asg" {
   lb_target_group_arn = module.alb.target_group_arn
   security_group_ids  = [module.security_group.sg_ids["ollama_sg"], module.security_group.sg_ids["monitoring_sg"]]
   key_name            = var.ssh_key_name
-  user_data           = "./scripts/ollama-setup.sh"
+  # user_data           = "./scripts/ollama-setup.sh"
 }
 
 module "cloudwatch" {

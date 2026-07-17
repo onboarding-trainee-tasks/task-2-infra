@@ -4,7 +4,7 @@ resource "aws_launch_template" "this" {
   vpc_security_group_ids = var.security_group_ids
   key_name               = var.key_name
 
-  user_data = filebase64(var.user_data)
+  # user_data = filebase64(var.user_data)
 }
 
 resource "aws_autoscaling_group" "this" {

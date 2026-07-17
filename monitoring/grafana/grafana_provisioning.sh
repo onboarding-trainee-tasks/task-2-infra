@@ -12,7 +12,6 @@ GRAFANA_AWS_DASHBOARD_SOURCE="/tmp/aws-infra-dashboard.json"
 GRAFANA_ALERTS_SOURCE="/tmp/alert-rules.yaml"
 
 PROMETHEUS_RULES_SOURCE="/tmp/service-rules.yml"
-ALERTMANAGER_CONFIG_SOURCE="/tmp/alertmanager.yaml"
 
 sudo mkdir -p /etc/grafana/provisioning/datasources
 sudo mkdir -p /etc/grafana/provisioning/dashboards
@@ -70,36 +69,6 @@ sudo install \
     -m 0644 \
     "$PROMETHEUS_RULES_SOURCE" \
     /etc/prometheus/rules/service-rules.yml
-
-### Install AlertManager
-sudo install \
-    -m 0644 \
-    "$ALERTMANAGER_CONFIG_SOURCE" \
-    /etc/alertmanager/alertmanager.yaml
-
-### Install AlertManager secrets
-sudo install \
-  -d \
-  -o alertmanager \
-  -g alertmanager \
-  -m 0750 \
-  /etc/alertmanager/secrets
-
-sudo install \
-  -o alertmanager \
-  -g alertmanager \
-  -m 0640 \
-  /dev/null \
-  /etc/alertmanager/secrets/smtp_password
-
-read -rsp "Gmail App Password: " SMTP_APP_PASSWORD
-echo
-
-printf '%s' "$SMTP_APP_PASSWORD" \
-  | sudo tee /etc/alertmanager/secrets/smtp_password \
-  > /dev/null
-
-unset SMTP_APP_PASSWORD
 
 sudo systemctl enable grafana-server
 sudo systemctl restart grafana-server
