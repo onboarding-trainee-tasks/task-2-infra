@@ -55,8 +55,6 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    env:
-      TF_VAR_allowed_cidr_blocks: ${{ vars.T2_ADMIN_CIDRS }}
 
     steps:
       - name: Checkout repository
@@ -77,13 +75,6 @@ jobs:
 
       - name: Verify AWS identity
         run: aws sts get-caller-identity
-
-      - name: Check admin CIDRs are configured
-        run: |
-          test -n "$TF_VAR_allowed_cidr_blocks" || {
-            echo "Set T2_ADMIN_CIDRS repository variable to a JSON list, e.g. [\"YOUR_IP/32\"]"
-            exit 1
-          }
 
       - name: Check Terraform formatting
         run: terraform fmt -check -recursive
