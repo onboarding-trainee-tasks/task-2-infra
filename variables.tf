@@ -1,38 +1,37 @@
-data "aws_ami" "ubuntu" {
-  most_recent = true
-
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*"]
-  }
-
-  owners = ["099720109477"] # Canonical
+variable "packer_bastion_ami" {
+  description = "ID of AMI created by Packer for Bastion Host"
+  type        = string
+  default     = "ami-01dcaea3a368849c9"
 }
 
-data "aws_secretsmanager_secret" "rds_secrets" {
-  arn = "arn:aws:secretsmanager:eu-central-1:583955898731:secret:Task-1-RDS-Secrets-JXWRuA"
+variable "packer_llm_ami" {
+  description = "ID of AMI created by Packer for LLM Hosts"
+  type        = string
+  default     = "ami-031e1b98dc35b8aaa"
 }
 
-data "aws_secretsmanager_secret_version" "rds_secrets_version" {
-  secret_id = data.aws_secretsmanager_secret.rds_secrets.id
+variable "packer_web_server_ami" {
+  description = "ID of AMI created by Packer for Web Server"
+  type        = string
+  default     = "ami-0fbbd30e2c7115049"
 }
 
 variable "allowed_cidr_blocks" {
   description = "A list of allowed CIDR blocks for the security group"
   type        = list(string)
-  default     = ["178.212.0.0/16", "146.120.0.0/16"]
+  default     = ["45.12.24.95/32"]
 }
 
-variable "ssh_key_path" {
-  description = "Path to the SSH key pair for EC2 instances"
+variable "aws_region" {
+  description = "Region where resources are deployed"
   type        = string
-  default     = "C:\\Onboarding\\.ssh\\terraform-ssh-key.pub"
+  default     = "eu-central-1"
 }
 
-variable "s3_bucket_arn" {
-  description = "The ARN of the S3 bucket to allow access to"
+variable "ssh_key_name" {
+  description = "Name of the SSH key pair for EC2 instances"
   type        = string
-  default     = "arn:aws:s3:::init-sql-script"
+  default     = "terraform-ssh-key"
 }
 
 variable "db_name" {
@@ -44,7 +43,7 @@ variable "db_name" {
 variable "min_instance_count" {
   description = "The minimum number of instances for the Auto Scaling group"
   type        = number
-  default     = 1
+  default     = 2
 }
 
 variable "max_instance_count" {
@@ -56,7 +55,7 @@ variable "max_instance_count" {
 variable "desired_instance_count" {
   description = "The desired number of instances for the Auto Scaling group"
   type        = number
-  default     = 1
+  default     = 2
 }
 
 variable "rds_instance_class" {
@@ -73,6 +72,24 @@ variable "rds_allocated_storage" {
 
 variable "autoscaling_policy_value" {
   description = "Target value for the metric"
-  type = number
-  default = 80
+  type        = number
+  default     = 80
+}
+
+variable "sns_topic_name" {
+  description = "Name of the SNS Topic for CloudWatch"
+  type        = string
+  default     = "task-2-alerts"
+}
+
+variable "project" {
+  description = "Project name"
+  type        = string
+  default     = "llm"
+}
+
+variable "environment" {
+  description = "Environment name"
+  type        = string
+  default     = "test"
 }

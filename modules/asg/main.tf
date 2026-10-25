@@ -4,19 +4,31 @@ resource "aws_launch_template" "this" {
   vpc_security_group_ids = var.security_group_ids
   key_name               = var.key_name
 
-  user_data = filebase64(var.user_data)
+  # user_data = filebase64(var.user_data)
 }
 
 resource "aws_autoscaling_group" "this" {
-  name                      = "my-asg"
-  min_size                  = var.min_size
-  max_size                  = var.max_size
-  desired_capacity          = var.desired_capacity
+  name             = "my-asg"
+  min_size         = var.min_size
+  max_size         = var.max_size
+  desired_capacity = var.desired_capacity
 
   launch_template {
     id      = aws_launch_template.this.id
     version = "$Latest"
   }
+
+  instance_refresh {
+    strategy = "Rolling"
+
+    preferences {
+      min_healthy_percentage = 50
+      instance_warmup        = 300
+    }
+
+    triggers = ["launch_template"]
+  }
+
   vpc_zone_identifier       = var.vpc_zone_identifier
   health_check_type         = var.health_check_type
   health_check_grace_period = var.health_check_grace_period

@@ -14,10 +14,6 @@ resource "aws_instance" "this" {
     volume_size = var.volume_size
   }
 
-  lifecycle {
-    ignore_changes = [ami]
-  }
-
   tags = {
     Name = "${var.instance_name}"
     Role = "${var.instance_name}"
