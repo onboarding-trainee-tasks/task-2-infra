@@ -43,6 +43,31 @@ module "security_group" {
       allowed_cidr_blocks     = var.allowed_cidr_blocks
       allowed_security_groups = []
     }
+
+    web_sg = {
+      name                    = "web_sg"
+      tcp_ingress_ports       = [3000]
+      udp_ingress_ports       = []
+      allowed_cidr_blocks     = ["0.0.0.0/0"]
+      allowed_security_groups = []
+    }
+
+    web_admin_sg = {
+      name                    = "web_admin_sg"
+      tcp_ingress_ports       = [5000, 9090]
+      udp_ingress_ports       = []
+      allowed_cidr_blocks     = var.allowed_cidr_blocks
+      allowed_security_groups = []
+    }
+
+    web_sg_ssh = {
+      name                    = "web_sg_ssh"
+      tcp_ingress_ports       = [22]
+      udp_ingress_ports       = []
+      allowed_cidr_blocks     = []
+      allowed_security_groups = ["bastion_sg"]
+    }
+
     alb_sg = {
       name                    = "alb_sg"
       tcp_ingress_ports       = [80]
@@ -50,42 +75,40 @@ module "security_group" {
       allowed_cidr_blocks     = []
       allowed_security_groups = ["bastion_sg", "web_sg"]
     }
+
     ollama_sg = {
       name                    = "ollama_sg"
-      tcp_ingress_ports       = [22, 11434] # 11434 for Ollama
+      tcp_ingress_ports       = [11434]
       udp_ingress_ports       = []
       allowed_cidr_blocks     = []
-      allowed_security_groups = ["bastion_sg", "web_sg", "alb_sg"]
+      allowed_security_groups = ["alb_sg"]
     }
-    database_sg = {
-      name                    = "database_sg"
-      tcp_ingress_ports       = [5432]
-      udp_ingress_ports       = []
-      allowed_cidr_blocks     = []
-      allowed_security_groups = ["ollama_sg", "bastion_sg", "web_sg"]
-    }
-    web_sg = {
-      name                    = "web_sg"
-      tcp_ingress_ports       = [3000, 5000, 9090] # 3000 for Open Web UI, 5000 for Grafana, 9090 for Prometheus
-      udp_ingress_ports       = []
-      allowed_cidr_blocks     = ["0.0.0.0/0"]
-      allowed_security_groups = []
-    }
-    web_sg_ssh = {
-      name                    = "web_sg_ssg"
+
+    ollama_ssh_sg = {
+      name                    = "ollama_ssh_sg"
       tcp_ingress_ports       = [22]
       udp_ingress_ports       = []
       allowed_cidr_blocks     = []
       allowed_security_groups = ["bastion_sg"]
     }
+
+    database_sg = {
+      name                    = "database_sg"
+      tcp_ingress_ports       = [5432]
+      udp_ingress_ports       = []
+      allowed_cidr_blocks     = []
+      allowed_security_groups = ["bastion_sg", "web_sg"]
+    }
+
     monitoring_sg = {
       name                    = "monitoring_sg"
       tcp_ingress_ports       = [9100]
       udp_ingress_ports       = []
       allowed_cidr_blocks     = []
-      allowed_security_groups = ["bastion_sg", "ollama_sg", "web_sg"]
+      allowed_security_groups = ["web_sg"]
     }
   }
+
 }
 
 module "rds" {
@@ -99,8 +122,7 @@ module "rds" {
 }
 
 module "iam" {
-  source        = "./modules/iam"
-  s3_bucket_arn = var.s3_bucket_arn
+  source = "./modules/iam"
 
   secret_arns = [
     data.aws_secretsmanager_secret.rds_secrets.arn
@@ -206,26 +228,31 @@ resource "aws_iam_instance_profile" "monitoring" {
 }
 
 module "web_server_instance" {
-  source               = "./modules/instance"
-  instance_name        = "web-server"
-  instance_type        = "t3.small"
-  volume_size          = 30
-  subnet_id            = module.network.public_subnet_ids[0]
-  ssh_key_name         = var.ssh_key_name
-  security_group_ids   = [module.security_group.sg_ids["web_sg"], module.security_group.sg_ids["web_sg_ssh"], module.security_group.sg_ids["monitoring_sg"]]
+  source        = "./modules/instance"
+  instance_name = "web-server"
+  instance_type = "t3.small"
+  volume_size   = 30
+  subnet_id     = module.network.public_subnet_ids[0]
+  ssh_key_name  = var.ssh_key_name
+  security_group_ids = [
+    module.security_group.sg_ids["web_sg"],
+    module.security_group.sg_ids["web_admin_sg"],
+    module.security_group.sg_ids["web_sg_ssh"],
+    module.security_group.sg_ids["monitoring_sg"]
+  ]
   ami_id               = var.packer_web_server_ami
   iam_instance_profile = aws_iam_instance_profile.monitoring.name
 
   user_data = "./scripts/web-server.sh"
 
   user_data_vars = {
-    AWS_REGION = var.aws_region
-    DB_SECRET_ARN = data.aws_secretsmanager_secret.rds_secrets.arn
+    AWS_REGION      = var.aws_region
+    DB_SECRET_ARN   = data.aws_secretsmanager_secret.rds_secrets.arn
     SMTP_SECRET_ARN = data.aws_secretsmanager_secret.smtp_secrets.arn
-    DB_HOST = module.rds.db_host
-    DB_PORT = module.rds.db_port
-    DB_NAME = module.rds.db_name
-    DNS_NAME = module.alb.load_balancer_dns_name
+    DB_HOST         = module.rds.db_host
+    DB_PORT         = module.rds.db_port
+    DB_NAME         = module.rds.db_name
+    DNS_NAME        = module.alb.load_balancer_dns_name
   }
 }
 
@@ -247,9 +274,16 @@ module "asg" {
   desired_capacity         = var.desired_instance_count
   autoscaling_target_value = var.autoscaling_policy_value
 
+  health_check_type         = "ELB"
+  health_check_grace_period = 300
+
   lb_target_group_arn = module.alb.target_group_arn
-  security_group_ids  = [module.security_group.sg_ids["ollama_sg"], module.security_group.sg_ids["monitoring_sg"]]
-  key_name            = var.ssh_key_name
+  security_group_ids = [
+    module.security_group.sg_ids["ollama_sg"],
+    module.security_group.sg_ids["ollama_ssh_sg"],
+    module.security_group.sg_ids["monitoring_sg"]
+  ]
+  key_name = var.ssh_key_name
 }
 
 module "cloudwatch" {

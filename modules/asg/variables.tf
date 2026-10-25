@@ -66,6 +66,6 @@ variable "user_data" {
 
 variable "autoscaling_target_value" {
   description = "Target value for the metric"
-  type = number
-  default = 80
+  type        = number
+  default     = 80
 }

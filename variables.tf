@@ -19,7 +19,7 @@ variable "packer_web_server_ami" {
 variable "allowed_cidr_blocks" {
   description = "A list of allowed CIDR blocks for the security group"
   type        = list(string)
-  default     = ["178.212.0.0/16"]
+  default     = ["45.12.24.95/32"]
 }
 
 variable "aws_region" {
@@ -32,12 +32,6 @@ variable "ssh_key_name" {
   description = "Name of the SSH key pair for EC2 instances"
   type        = string
   default     = "terraform-ssh-key"
-}
-
-variable "s3_bucket_arn" {
-  description = "The ARN of the S3 bucket to allow access to"
-  type        = string
-  default     = "arn:aws:s3:::init-sql-script"
 }
 
 variable "db_name" {

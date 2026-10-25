@@ -5,13 +5,13 @@ resource "aws_iam_role" "this" {
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
-        {
-            Action = "sts:AssumeRole"
-            Principal = {
-                Service = "ec2.amazonaws.com"
-            }
-            Effect = "Allow"
+      {
+        Action = "sts:AssumeRole"
+        Principal = {
+          Service = "ec2.amazonaws.com"
         }
+        Effect = "Allow"
+      }
     ]
   })
 }
@@ -24,20 +24,6 @@ resource "aws_iam_policy" "this" {
     Version = "2012-10-17"
 
     Statement = [
-      {
-        Sid    = "ReadInitSqlFromS3"
-        Effect = "Allow"
-
-        Action = [
-          "s3:ListBucket",
-          "s3:GetObject"
-        ]
-
-        Resource = [
-          var.s3_bucket_arn,
-          "${var.s3_bucket_arn}/*"
-        ]
-      },
       {
         Sid    = "ReadDatabaseSecret"
         Effect = "Allow"

@@ -13,9 +13,9 @@ variable "environment" {
   type        = string
 }
 
-variable sns_topic_name {
+variable "sns_topic_name" {
   description = "Name of the SNS Topic for CloudWatch"
-  type = string
+  type        = string
 }
 
 variable "web_instance_id" {
