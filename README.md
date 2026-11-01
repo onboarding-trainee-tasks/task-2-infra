@@ -74,10 +74,30 @@ The following items must already exist:
    the resulting IDs into `packer_bastion_ami`, `packer_llm_ami` and
    `packer_web_server_ami`. AMI IDs are region-specific.
 
+
 6. **EC2 key pair**
 
-   An AWS EC2 key pair named `terraform-ssh-key` in `eu-central-1`, with its
-   private `.pem` file stored locally. Terraform references the key created by AWS.
+   Create key via AWS
+
+   <b>OR</b>
+
+   Generate an SSH key pair locally:
+
+   ```bash
+   ssh-keygen -t ed25519 -f ~/.ssh/t2-bastion
+   ```
+
+   Import its public key into AWS:
+
+   ```bash
+   aws ec2 import-key-pair \
+     --key-name t2-terraform-key \
+     --public-key-material fileb://$HOME/.ssh/t2-bastion.pub \
+     --region eu-central-1
+   ```
+
+   Terraform references this existing EC2 Key Pair for the
+   bastion, web server and Auto Scaling instances.
 
 7. **SNS topic**
 
