@@ -1,4 +1,9 @@
 output "ssh_command" {
-  description = "The SSH command to connect to the bastion host"
-  value       = "ssh -i C:\\Onboarding\\.ssh\\terraform-ssh-key.pem ubuntu@${module.bastion_instance.public_ip}"
+  description = "SSH command for Task 2 Bastion"
+  value       = "ssh -i ~/.ssh/t2-bastion ubuntu@${module.bastion_instance.public_ip}"
+}
+
+output "bastion_public_ip" {
+  description = "Current Bastion public IP"
+  value       = module.bastion_instance.public_ip
 }

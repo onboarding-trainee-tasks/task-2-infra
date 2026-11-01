@@ -30,9 +30,9 @@ variable "ssh_key_path" {
 }
 
 variable "ssh_key_name" {
-  description = "The name of the SSH private key, created in main tf config"
+  description = "Name of the SSH key pair for EC2 instances"
   type        = string
-  default     = null
+  default     = "t2-terraform-key"
 }
 
 variable "ami_id" {

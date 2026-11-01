@@ -19,7 +19,7 @@ variable "packer_web_server_ami" {
 variable "allowed_cidr_blocks" {
   description = "A list of allowed CIDR blocks for the security group"
   type        = list(string)
-  default     = ["45.12.24.95/32"]
+  default     = ["164.137.0.0/16"]
 }
 
 variable "aws_region" {
