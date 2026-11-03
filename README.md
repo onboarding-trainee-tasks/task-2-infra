@@ -144,4 +144,4 @@ The Ollama API is accessible internally through the Application Load Balancer.
 After apply, get the bastion IP with `terraform output ssh_command`. The output contains the ssh command with SSH key path.
 
 Find the web public IP and ALB DNS name in the EC2/Load Balancer console. On the
-instances, user-data logs are available in `/var/log/cloud-init-output.log`.
+instances, user-data logs are available in `/var/log/cloud-init-output.log`. 
