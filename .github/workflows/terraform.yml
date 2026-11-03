@@ -1,18 +1,19 @@
-name: T2 Terraform CI/CD
+name: Terraform CI/CD
 
 on:
   pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  push:
     branches: [main]
   workflow_dispatch:
     inputs:
       operation:
         description: Terraform operation
+        type: choice
         required: true
         default: plan
-        type: choice
-        options:
-          - plan
-          - apply
+        options: [plan, apply]
 
 permissions:
   contents: read
@@ -23,74 +24,103 @@ env:
 
 jobs:
   validate:
-    name: Terraform Validation
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
+      - name: Checkout
+        uses: actions/checkout@v7
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v4
         with:
           terraform_wrapper: false
-
-      - name: Check Terraform formatting
+      - name: Terraform fmt
         run: terraform fmt -check -recursive
-
-      - name: Terraform init without remote backend
+      - name: Terraform init
         run: terraform init -backend=false -input=false
-
       - name: Terraform validate
         run: terraform validate -no-color
 
-  deploy:
-    name: Terraform Plan / Apply
+  plan:
     if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    needs: validate
     runs-on: ubuntu-latest
-    environment: T2-deploy
-    concurrency:
-      group: t2-terraform-deploy
-      cancel-in-progress: false
     permissions:
       contents: read
       id-token: write
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
+      - name: Checkout
+        uses: actions/checkout@v7
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v4
         with:
           terraform_wrapper: false
-
-      - name: Authenticate to AWS through OIDC
+      - name: AWS OIDC login
         uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
           allowed-account-ids: ${{ vars.AWS_ACCOUNT_ID }}
-          role-session-name: t2-terraform-${{ github.run_id }}
-
-      - name: Verify AWS identity
-        run: aws sts get-caller-identity
-
-      - name: Check Terraform formatting
-        run: terraform fmt -check -recursive
-
-      - name: Terraform init with remote backend
+      - name: Terraform init
         run: terraform init -input=false
-
-      - name: Terraform validate
-        run: terraform validate -no-color
-
-      - name: Create Terraform plan
+      - name: Create plan
         run: terraform plan -input=false -no-color -lock-timeout=5m -out=tfplan
-
-      - name: Show Terraform plan
+      - name: Show plan
         run: terraform show -no-color tfplan
-
-      - name: Apply reviewed plan
+      - name: Encrypt deployment files
         if: inputs.operation == 'apply'
-        run: terraform apply -input=false tfplan
+        env:
+          TF_PLAN_KEY: ${{ secrets.TF_PLAN_ENCRYPTION_KEY }}
+        run: |
+          set -e
+          test -n "$TF_PLAN_KEY"
+          tar -czf deployment.tar.gz tfplan .terraform.lock.hcl
+          openssl enc -aes-256-cbc -pbkdf2 -iter 100000 \
+            -in deployment.tar.gz -out deployment.tar.gz.enc \
+            -pass env:TF_PLAN_KEY
+      - name: Upload encrypted artifact
+        if: inputs.operation == 'apply'
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-deployment
+          path: deployment.tar.gz.enc
+          if-no-files-found: error
+          retention-days: 7
+
+  apply:
+    if: github.event_name == 'workflow_dispatch' && inputs.operation == 'apply'
+    needs: plan
+    runs-on: ubuntu-latest
+    environment: T2-deploy
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_wrapper: false
+      - name: AWS OIDC login
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          allowed-account-ids: ${{ vars.AWS_ACCOUNT_ID }}
+      - name: Download encrypted artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-deployment
+      - name: Decrypt deployment files
+        env:
+          TF_PLAN_KEY: ${{ secrets.TF_PLAN_ENCRYPTION_KEY }}
+        run: |
+          set -e
+          test -n "$TF_PLAN_KEY"
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 100000 \
+            -in deployment.tar.gz.enc -out deployment.tar.gz \
+            -pass env:TF_PLAN_KEY
+          tar -xzf deployment.tar.gz
+      - name: Terraform init
+        run: terraform init -input=false -lockfile=readonly
+      - name: Apply saved plan
+        run: terraform apply -input=false -lock-timeout=5m tfplan
